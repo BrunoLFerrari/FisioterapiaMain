@@ -1,0 +1,48 @@
+//atributos
+public class Horario {
+	private String data;
+	private String hora;
+	private int num;
+    private int cod;
+	//construtor
+	public Horario(String data, String hora,int num,int cod){
+		this.data=data;
+		this.hora=hora;
+		this.num=num;
+        this.cod=cod;
+
+
+	}
+	//gets e sets
+	public String getData(){
+		return data;
+	}
+	public  void setData(String data){
+		this.data=data;
+	}
+	public  String getHora(){
+		return hora;
+	}
+	public void setHora(String hora){
+		this.hora=hora;
+	}
+	
+	public int getNum(){
+		return num;
+	}
+	public void setNum(int num){
+		this.num=num;
+	}
+    public int cod(){
+        return cod;
+    }
+    public void cod(int cod){
+        this.cod=cod;
+    }
+
+	public String toString(){
+		return this.data+ "\t" +this.hora +"\t"+ this.num +"\t" +this.cod +"\n";
+
+	}
+
+}
