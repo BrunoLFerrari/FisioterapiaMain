@@ -1,0 +1,419 @@
+import java.io.*;
+import java.util.Scanner;
+/*Cadastrar um paciente em uma clinica de fisioterapia
+ *///horario recebe paciente - no horario vai alterar o horario do paciente
+public class FisioterapiaMain {
+	//variaveis globais
+	static StringBuffer memoria = new StringBuffer();
+	static StringBuffer memoriah= new StringBuffer();
+	static Scanner scan=new Scanner(System.in);
+
+	public static void main(String[]args){
+		char op,resp='N';
+		do{
+			op=menu();
+			switch (op) {
+			case '1' :			
+				inserirDadosPaciente();//inseri as informacoes do paciente
+				break;
+			case '2':
+				consultarGeralPaciente();//consulta geral dos paciente informando o codigo dele,nome,idade,sexo
+				break;
+
+			case '3':
+				inserirDadosHorario();//solicita a data,hora,numero do consultorio e o codigo dele
+				break;
+
+			case '4':
+				consultarGeralHorario();//informa a data,hora,numero do consultorio e o codigo
+				break;
+
+			case '5':
+				consultarEspeHorario();// faz uma consulta especifica com o codigo do paciente
+				break;
+
+			case '6':
+				alterarDados();//altera o horario do paciente
+				break;
+			case '7':
+				excluirDados();//exclui os dados do paciente
+				break;
+			case '8':
+				System.out.println("Deseja realmente sair do programa? S/N");
+				resp = Character.toUpperCase(scan.next().charAt(0));
+				break;
+			default:
+				System.out.println("opcao invalida, tente novamente.");
+			}
+		} while	(resp!='S');
+		System.exit(0);
+
+	}
+	static char menu(){ //Menu de opcoes 
+		System.out.println("\n\nEscolha uma Opcao:\n"+
+				"1. Inserir novo paciente\n"+
+				"2. Consultar  Paciente geral\n"+
+				"3. Inserir dados horario\n" +
+				"4. Consultar Geral Horario\n"+
+				"5. Consultar especifica Horario\n"+
+				"6. Alterar dados do horario\n"+
+				"7. Excluir um horario\n"+
+				"8. Sair");
+		return scan.next().charAt(0);
+	}
+	//Menu para ser usado no segundo arquivo
+	// metodo para atualizar a variavel  memoria com os dados que estao no HD
+	static void iniciarArquivo(){ 
+		try{
+			BufferedReader arquivoEntrada;
+			arquivoEntrada= new BufferedReader(new FileReader("Pacientes.txt"));
+			String linha=" ";
+			memoria.delete(0,memoria.length()); //Apaga tudo que estiver na variavel memoria
+			do {
+				linha = arquivoEntrada.readLine();
+				if (linha != null) {
+					memoria.append(linha + "\n");
+				}
+			}while (linha != null);
+			arquivoEntrada.close();
+		} 
+		catch (FileNotFoundException erro){
+			System.out.println("\nArquivo nao encontrado");
+		} 
+		catch (Exception e){
+			System.out.println("\nErro de Leitura!");
+		}
+
+	}
+	//metodo que grava os dados na memoria segundaria no HD,pendrive
+	static void gravarDados(){
+		try{
+			BufferedWriter arquivosSaida;
+			arquivosSaida=new BufferedWriter(new FileWriter("Pacientes.txt"));        
+			arquivosSaida.write(memoria.toString());
+			arquivosSaida.flush();
+			arquivosSaida.close();
+		} catch (Exception e){
+			System.out.println("\nErro de gravacao!");
+		}
+
+	}
+	static void inserirDadosPaciente(){ //metodo para inserir os dados do paciente
+		String nome,sexo,idade;
+		int codigo;
+		try{	
+
+			System.out.println("Informe o codigo do paciente: ");
+			codigo=scan.nextInt();	
+			System.out.println("Informe o nome do paciente: ");
+			nome=scan.next();
+			System.out.println("Informe o sexo do paciente: ");
+			sexo=scan.next();
+			System.out.println("Informe a idade do paciente: ");
+			idade=scan.next();
+			Paciente reg = new Paciente(codigo,nome,sexo,idade);
+			//memoria.append(reg1.toString());//inserir uma nova linha no final
+			BufferedWriter arquivosSaida;
+			arquivosSaida=new BufferedWriter(new FileWriter("Pacientes.txt",true));        
+			arquivosSaida.write(reg.toString());
+			arquivosSaida.flush();
+			arquivosSaida.close();
+			System.out.println("Paciente inserido com sucesso\n");
+		}
+		catch (Exception e){
+			System.out.println("\nErro de gravacao");
+
+		}
+
+	}
+	public static void consultarGeralPaciente(){ //consulta os dados do paciente
+		String codigo,nome,idade,sexo;
+		String dados="\nprontuario: \n\n";
+		int inicio,fim,ultimo,primeiro;
+		iniciarArquivo();
+		inicio = 0;
+		try{
+			if(memoria.length()!=0){ //pergunta se o tamanho da memoria e diferente de zero
+				while(inicio!=memoria.length()){ //pergunta se o valor de inicio e diferente de zero
+					ultimo=memoria.indexOf("\t",inicio);
+					codigo=memoria.substring(inicio,ultimo);
+					primeiro=ultimo+1;
+					ultimo=memoria.indexOf("\t",primeiro);
+					nome=memoria.substring(primeiro,ultimo);
+					primeiro=ultimo+1;
+					ultimo=memoria.indexOf("\t",primeiro);
+					idade=memoria.substring(primeiro,ultimo);
+					primeiro= ultimo +1;
+					fim=memoria.indexOf("\n",primeiro);
+					sexo=memoria.substring(primeiro,fim);
+					Paciente reg = new Paciente(Integer.parseInt(codigo),nome,idade,sexo);
+					dados+="CODIGO:" +reg.getCodigo()+"\n"+ 
+							"NOME: " +reg.getNome()+"\n"+
+							"IDADE: " +reg.getIdade()+"\n"+ 
+							"SEXO: "  +reg.getSexo()+"\n\n";
+					inicio= fim + 1; 
+				}
+				System.out.println(dados);
+
+			}else{
+				System.out.println("\n codigo nao encontrado");
+			}
+
+		}
+		catch(Exception erro2){
+			System.out.println("Erro de leitura");
+		}
+	}
+	//inicia o arquivo horario 
+	static void iniciarArquivoHorario(){
+		try{
+			BufferedReader arquivoEntrada;
+			arquivoEntrada= new BufferedReader(new FileReader("Horario.txt"));
+			String linha=" ";
+			memoriah.delete(0,memoriah.length()); //Apaga tudo que estiver na variavel memoria
+			do {
+				linha = arquivoEntrada.readLine();
+				if (linha != null) {
+					memoriah.append(linha + "\n");
+				}
+			}while (linha != null);
+			arquivoEntrada.close();
+		} 
+		catch (FileNotFoundException erro){
+			System.out.println("\nArquivo nao encontrado");
+		} 
+		catch (Exception e){
+			System.out.println("\nErro de Leitura!");
+		}
+
+
+	}
+	//metodo para gravar os dados 
+	static void gravarDadosHorario(){
+		try{
+			BufferedWriter arquivosSaida;
+			arquivosSaida=new BufferedWriter(new FileWriter("Horario.txt"));        
+			arquivosSaida.write(memoriah.toString());
+			arquivosSaida.flush();
+			arquivosSaida.close();
+		} 
+		catch (Exception e){
+			System.out.println("\nErro de gravacao!");
+		}
+
+
+	}
+	static void inserirDadosHorario(){ //metodo para inserir os dados dos horario do paciente
+		String data,hora;
+		int num,codigoPac;
+		try{
+			System.out.println("Informe a data da consulta: ");
+			data=scan.next();
+			System.out.println("Informe a hora da consulta: ");
+			hora=scan.next();
+			System.out.println("Informe o numero do consultorio (1 a 10) ");
+			num=scan.nextInt();
+			System.out.println("Informe o numero do paciente: ");
+			codigoPac=scan.nextInt();
+			Horario reg = new Horario(data,hora,num,codigoPac);
+
+			BufferedWriter arquivosSaida;
+			arquivosSaida=new BufferedWriter(new FileWriter("Horario.txt",true));        
+			arquivosSaida.write(reg.toString());
+			arquivosSaida.flush();
+			arquivosSaida.close();
+		}
+		catch (Exception e){
+			System.out.println("\nErro de gravacao");
+		}
+
+	}
+	static void consultarGeralHorario(){
+		String data,hora,num,cod;
+		String dados="\nHorario-do-Paciente\n\n";
+		int inicio,fim,ultimo,primeiro;
+		iniciarArquivoHorario();
+		iniciarArquivo();
+		inicio=0;
+		try{
+			if(memoriah.length()!=0){
+				while(inicio!=memoriah.length()){
+					ultimo=memoriah.indexOf("\t",inicio);
+					data=memoriah.substring(inicio,ultimo);  //acrescentar codigo=memoria.substring(primeiro,ultimo);
+					primeiro=ultimo + 1;
+					ultimo=memoriah.indexOf("\t",primeiro);
+					hora=memoriah.substring(primeiro, ultimo);
+					primeiro=ultimo + 1;
+					ultimo=memoriah.indexOf("\t",primeiro);
+					num=memoriah.substring(primeiro, ultimo);
+					primeiro=ultimo + 1;
+					fim=memoriah.indexOf("\n",primeiro);
+					cod=memoriah.substring(primeiro, fim);
+					Horario reg= new Horario(data,hora,Integer.parseInt(num),Integer.parseInt(cod));
+					dados+= "DATA: "+reg.getData()+"\n"+
+							"HORA: "+reg.getHora()+"\n"+
+							"CONSULTORIO: "+reg.getNum()+"\n"+
+							"PACIENTE: "+reg.cod()+"\n\n";
+					inicio= fim + 1;
+
+				}
+				System.out.println(dados);
+
+
+			}else{
+				System.out.println("Arquivo vazio.");
+			}
+
+		}
+		catch(Exception erro2){
+			System.out.println("Erro de leitura.");
+		}
+
+
+	}
+	//consulta o o harario do paciente
+	static void consultarEspeHorario(){
+		String data,hora,num,cod;
+		int inicio,fim,ultimo,primeiro;
+		boolean achou=false;
+		int procura;					//usar o alterar dados para pesquisar 
+		iniciarArquivoHorario();
+		try{
+			if(memoriah.length()!=0){
+				System.out.println("\nDigite o codigo do paciente para busca:");
+				procura= scan.nextInt();
+				inicio = 0;   //inicio come�a na posi��o 0 
+				while ((inicio != memoriah.length()) && (!achou)) {
+					ultimo = memoriah.indexOf ("\t", inicio);
+					data = memoriah.substring(inicio, ultimo);
+					primeiro = ultimo + 1;
+					ultimo = memoriah.indexOf ("\t", primeiro); 
+					hora = memoriah.substring(primeiro, ultimo);		
+					primeiro = ultimo + 1;
+					ultimo=memoriah.indexOf("\t",primeiro);
+					num=memoriah.substring(primeiro, ultimo);
+					primeiro=ultimo + 1;
+					fim=memoriah.indexOf("\n",primeiro);
+					cod=memoriah.substring(primeiro, fim);
+					Horario reg = new Horario(data,hora,Integer.parseInt(num),Integer.parseInt(cod));
+					if (procura ==reg.cod()){
+						System.out.println("\nDATA: "+reg.getData()+
+								"  HORA: " +reg.getHora()+
+								"  CONSULTORIO: "+reg.getNum()+
+								"  PACIENTE: "+reg.cod());
+						achou = true;
+					}
+					inicio = fim + 1;  // continua procurando o c�digo da pessoa
+				}
+				if (!achou){
+					System.out.println("\nPaciente nao encontrado.");
+				}
+			}else{
+				System.out.println("\nArquivo vazio");
+
+			}
+
+		}
+		catch(Exception erro2){
+			System.out.println("\nErro de leitura");
+		}
+	}
+	//alterar o horario do paciente
+	static void alterarDados(){
+		String data,hora,num,cod;
+		int inicio,fim,ultimo,primeiro;
+		boolean achou=false;
+		int procura;					//usar o alterar dados para pesquisar 
+		iniciarArquivoHorario();
+		if(memoriah.length()!=0){
+			System.out.println("\nDigite o codigo do paciente para busca:");
+			procura= scan.nextInt();
+			inicio = 0;   //inicio come�a na posi��o 0 
+			while ((inicio != memoriah.length()) && (!achou)) {
+				ultimo = memoriah.indexOf ("\t", inicio);
+				data = memoriah.substring(inicio, ultimo);
+				primeiro = ultimo + 1;
+				ultimo = memoriah.indexOf ("\t", primeiro); 
+				hora = memoriah.substring(primeiro, ultimo);		
+				primeiro = ultimo + 1;
+				ultimo=memoriah.indexOf("\t",primeiro);
+				num=memoriah.substring(primeiro, ultimo);
+				primeiro=ultimo + 1;
+				fim=memoriah.indexOf("\n",primeiro);
+				cod=memoriah.substring(primeiro, fim);
+				Horario reg = new Horario(data,hora,Integer.parseInt(num),Integer.parseInt(cod));
+				if (procura ==reg.cod()){
+					System.out.println("\nDATA: "+reg.getData()+
+							"  HORA: " +reg.getHora()+
+							"  CONSULTORIO: "+reg.getNum()+
+							"  PACIENTE: "+reg.cod());
+					System.out.println("Informe um novo horario: ");
+					reg.setHora(scan.next());
+					memoriah.replace(inicio,fim+1,reg.toString());
+					gravarDadosHorario();
+					achou = true;
+				}
+				inicio= fim + 1;
+			}
+			if(achou){
+				System.out.println("\nAlteração realizada com sucesso: ");
+			}else{
+				System.out.println("\nCodigo nao encontrado");
+			}
+		}else{
+			System.out.println("\nArquivo vazio.");
+		}
+	}
+	//excluir o horario do paciente
+	static void excluirDados(){
+		String data,hora,num,cod;
+		int inicio,fim,ultimo,primeiro,procura;
+		boolean achou=false;
+		char resp;
+		iniciarArquivoHorario();
+		if(memoriah.length()!=0){
+			System.out.println("\nDigite o codigo do paciente para exclusao");
+			procura=scan.nextInt();
+			inicio=0;
+			while(inicio!=memoriah.length() && (!achou)){
+				ultimo=memoriah.indexOf("\t",inicio);
+				data=memoriah.substring(inicio, ultimo);
+				primeiro=ultimo + 1;
+				ultimo=memoriah.indexOf("\t",primeiro);
+				hora=memoriah.substring(primeiro, ultimo);
+				primeiro=ultimo + 1;
+				ultimo=memoriah.indexOf("\t",primeiro);
+				num=memoriah.substring(primeiro,ultimo);
+				primeiro=ultimo + 1;
+				fim=memoriah.indexOf("\n", primeiro);
+				cod=memoriah.substring(primeiro, fim);
+				Horario reg = new Horario(data, hora,Integer.parseInt(num),Integer.parseInt(cod));
+				if(procura ==reg.cod()){
+					System.out.println("Deseja excluir?"+"\n"+"Digite S ou N"+"\n\n"+
+							"\nDATA: "+reg.getData()+
+							"  HORA: " +reg.getHora()+
+							"  CONSULTORIO: "+reg.getNum()+
+							"  PACIENTE: "+reg.cod());
+					resp=Character.toUpperCase(scan.next().charAt(0));
+					if(resp =='S'){
+						memoriah.delete(inicio, fim + 1);
+						System.out.println("Registro excluido.");
+						gravarDadosHorario();
+					}else{
+						System.out.println("Exclusao cancelada");
+					}
+					achou=true;
+				}
+				inicio=fim+1;
+			}
+			if(!achou){
+				System.out.println("\nCodigo nao encontrado.");
+			}
+			else{
+				System.out.println("\nArquivo vazio.");
+			}
+		}
+
+	}
+
+}
